@@ -1,5 +1,7 @@
 # openstack_document
+## enviroment
+OS : Centos7
 ## install
-## neutron
-## cinder
+ `#systemctl stop NetworkManager`
+
 
