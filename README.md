@@ -17,7 +17,7 @@
 answer-fileを適宜編集し、必要なコンポーネントをインストールする。  
 `packstack --gen-answer-file answer-file.txt`  
 `vi answer-file.txttyum `  
-以下のように、anserwer-fileを編集する。
+以下のように、anserwer-fileを編集する。  
 >CONFIG_HEAT_INSTALL=y  
 >...オーケストレーション機能を有効化  
 >CONFIG_SAHARA_INSTALL=y   
