@@ -1,12 +1,22 @@
-# openstack_document
-## enviroment
-OS : Centos7
-## 初期インストール
+# OpenStak 構築
+## 構築環境
+- OS : Centos7
+- Server : hoge
+- Kernel : hoge
+
+## 構築手順
+### Openstack インストール
+1. Netwokmanagerの停止及び使用不可  
 `#systemctl stop NetworkManager`  
 `#sytemctl disable NetworkManager`  
+
+
+2. Openstack-packstackのインストール  
 `yum update -y`  
 `yum install -y https://rdoproject.org/repos/rdo-release.rpm`  
 `yum install -y openstack-packstack`  
+3. Openstackのインストール  
+- answer-fileを適宜編集し、必要なコンポーネントをインストールする。
 `packstack --gen-answer-file answer-file.txt`  
 `vi answer-file.txttyum `  
 >CONFIG_HEAT_INSTALL=y  
