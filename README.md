@@ -9,16 +9,15 @@
 1. Netwokmanagerの停止及び使用不可  
 `#systemctl stop NetworkManager`  
 `#sytemctl disable NetworkManager`  
-
-
 2. Openstack-packstackのインストール  
 `yum update -y`  
 `yum install -y https://rdoproject.org/repos/rdo-release.rpm`  
 `yum install -y openstack-packstack`  
 3. Openstackのインストール  
-- answer-fileを適宜編集し、必要なコンポーネントをインストールする。
+answer-fileを適宜編集し、必要なコンポーネントをインストールする。  
 `packstack --gen-answer-file answer-file.txt`  
 `vi answer-file.txttyum `  
+以下のように、anserwer-fileを編集する。
 >CONFIG_HEAT_INSTALL=y  
 >...オーケストレーション機能を有効化  
 >CONFIG_SAHARA_INSTALL=y   
@@ -42,6 +41,7 @@
 >CONFIG_CINDER_VOLUMES_SIZE=20G  
 >CONFIG_SWIFT_STORAGE_SIZE=2G  
 `packstack --answer-file answer-file.txt`  
+*** インストールは非常に時間がかかる。***
 ## netutron
 ### 外部通信可能なネットワークの作り方  
 ### 外部ネットワークの設定
