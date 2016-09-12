@@ -41,10 +41,13 @@ answer-fileを適宜編集し、必要なコンポーネントをインストー
 >CONFIG_HEAT_CFN_INSTALL=y  
 >CONFIG_CINDER_VOLUMES_SIZE=20G  
 >CONFIG_SWIFT_STORAGE_SIZE=2G  
+
 `packstack --answer-file answer-file.txt`  
 *** インストールは非常に時間がかかる。***
-## netutron
+### netutron
 ### 外部通信可能なネットワークの作り方  
+`# neutron net-create net-ext --provider:network_type=local  --router:external=true --shared`
+
 ### 外部ネットワークの設定
 ### 内部ネットワークの設定
 ### ルータの設定
