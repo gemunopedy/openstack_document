@@ -43,35 +43,10 @@ answer-fileを適宜編集し、必要なコンポーネントをインストー
 >CONFIG_SWIFT_STORAGE_SIZE=2G  
 
 `packstack --answer-file answer-file.txt`  
-*** インストールは非常に時間がかかる。***
+***インストールは非常に時間がかかる***
 ### netutron
 ### 外部通信可能なネットワークの作り方  
 `# neutron net-create net-ext --provider:network_type=local  --router:external=true --shared`  
->+---------------------------+--------------------------------------+  
->| Field                     | Value                                |  
->+---------------------------+--------------------------------------+  
->| admin_state_up            | True                                 |  
->| availability_zone_hints   |                                      |  
->| availability_zones        |                                      |  
->| created_at                | 2016-07-26T03:38:38                  |  
->| description               |                                      |  
->| id                        | df3a58b5-74f7-4403-93ee-3699413fa976 |  
->| ipv4_address_scope        |                                      |  
->| ipv6_address_scope        |                                      |  
->| is_default                | False                                |  
->| mtu                       | 1500                                 |  
->| name                      | net-ext                              |  
->| provider:network_type     | local                                |  
->| provider:physical_network |                                      |  
->| provider:segmentation_id  |                                      |  
->| router:external           | True                                 |  
->| shared                    | True                                 |  
->| status                    | ACTIVE                               |  
->| subnets                   |                                      |  
->| tags                      |                                      |  
->| tenant_id                 | 2ed991629f1e49a4b7e3ca74434f8ee9     |  
->| updated_at                | 2016-07-26T03:38:38                  |  
->+---------------------------+--------------------------------------+  
 
 ### 内部ネットワークの設定
 `# neutron net-create net-int --provider:network_type=local   --shared`  
