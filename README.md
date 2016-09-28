@@ -44,7 +44,7 @@ answer-fileを適宜編集し、必要なコンポーネントをインストー
 `packstack --answer-file answer-file.txt`  
 ***インストールは非常に時間がかかる***
 ### netutron
-### 外部通信可能なネットワークの作り方  
+#### 外部通信可能なネットワークの作り方  
 `# neutron net-create net-ext --provider:network_type=local  --router:external=true --shared`  
 以下のような結果が表示される。    
 ```
@@ -100,7 +100,7 @@ answer-fileを適宜編集し、必要なコンポーネントをインストー
 +-------------------+------------------------------------------------+
 ```
 
-### 内部ネットワークの設定
+#### 内部ネットワークの設定
 `# neutron net-create net-int --provider:network_type=local   --shared`  
 以下の結果が表示される。  
 ```
@@ -154,7 +154,7 @@ answer-fileを適宜編集し、必要なコンポーネントをインストー
 | updated_at        | 2016-07-26T03:49:57                                |
 +-------------------+----------------------------------------------------+
 ```
-### ルータの設定
+#### ルータの設定
 `# neutron router-create router1`  
 以下の結果が表示される。   
 ```
@@ -180,7 +180,7 @@ answer-fileを適宜編集し、必要なコンポーネントをインストー
 2. routerとinterfaceをひもづける。  
 `# neutron router-interface-add  a30bc5a4-d69a-4e25-9b8b-59ae24ab4db4 f0af004f-45c6-4399-9acb-8a33413dbc6d`
 
-### ipの確認
+#### ipの確認
 `# ip netns`  
 ```
 qdhcp-94931237-7351-4690-9bfe-2a973739d631
@@ -209,7 +209,7 @@ tapb5cfa271-71: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1450
         TX packets 8  bytes 648 (648.0 B)
         TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
-### eno1をvswitchに接続
+#### eno1をvswitchに接続
 `# /etc/init.d/network stop`  
 `# cat /etc/sysconfig/network-scripts/ifcfg-eno1`  
 ```
@@ -401,4 +401,146 @@ qr-610bdae7-c1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
 #### 参考
 <http://transparent-to-radiation.blogspot.jp/2014/01/openstack-neutronnetwork-interface.html>  
 <http://www.usupi.org/sysad/260.html>  
+### cinder  
+ブロックストレージの管理を行う。
+***
+`# cinder create --display-name test-volume 50`
+```
++------------------------------+--------------------------------------+
+|           Property           |                Value                 |
++------------------------------+--------------------------------------+
+|         attachments          |                  []                  |
+|      availability_zone       |                 nova                 |
+|           bootable           |                false                 |
+|     consistencygroup_id      |                 None                 |
+|          created_at          |      2016-07-19T10:23:34.000000      |
+|         description          |                 None                 |
+|          encrypted           |                False                 |
+|              id              | d9113abc-3aa8-48f6-af74-e536cfed1172 |
+|           metadata           |                  {}                  |
+|         multiattach          |                False                 |
+|             name             |             test-volume              |
+| os-vol-tenant-attr:tenant_id |   bf8a4cddb9b046fda39ce3986774a3af   |
+|      replication_status      |               disabled               |
+|             size             |                  50                  |
+|         snapshot_id          |                 None                 |
+|         source_volid         |                 None                 |
+|            status            |               creating               |
+|          updated_at          |                 None                 |
+|           user_id            |   b25e61f198e448f5a22244e49320b43a   |
+|         volume_type          |                 None                 |
++------------------------------+--------------------------------------+
+```
+`# cinder list`
+```
++--------------------------------------+--------+-------------+------+-------------+----------+-------------+
+|                  ID                  | Status |     Name    | Size | Volume Type | Bootable | Attached to |
++--------------------------------------+--------+-------------+------+-------------+----------+-------------+
+| d9113abc-3aa8-48f6-af74-e536cfed1172 | error  | test-volume |  50  |      -      |  false   |             |
++--------------------------------------+--------+-------------+------+-------------+----------+-------------+
+```
+#### diskの拡張
+`# dd if=/dev/zero bs=1M count=$((5 * 1024)) >> cinder-volumes02`  
+`# losetup /dev/loop3 cinder-volumes02`  
+`# losetup -a`
+```
+/dev/loop0: [2051]:1581658 (/srv/loopback-device/swiftloopback)
+/dev/loop2: [2051]:1077198190 (/var/lib/cinder/cinder-volumes)
+/dev/loop3: [2051]:1077347660 (/var/lib/cinder/cinder-volumes02)　★
+```
+`# fdisk /dev/loop3`
+```
+Welcome to fdisk (util-linux 2.23.2).
+
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table
+Building a new DOS disklabel with disk identifier 0x4d37357c.
+
+コマンド (m でヘルプ): m
+コマンドの動作
+   a   toggle a bootable flag
+   b   edit bsd disklabel
+   c   toggle the dos compatibility flag
+   d   delete a partition
+   g   create a new empty GPT partition table
+   G   create an IRIX (SGI) partition table
+   l   list known partition types
+   m   print this menu
+   n   add a new partition
+   o   create a new empty DOS partition table
+   p   print the partition table
+   q   quit without saving changes
+   s   create a new empty Sun disklabel
+   t   change a partition's system id
+   u   change display/entry units
+   v   verify the partition table
+   w   write table to disk and exit
+   x   extra functionality (experts only)
+
+コマンド (m でヘルプ): n
+Partition type:
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended
+Select (default p): p
+パーティション番号 (1-4, default 1):
+最初 sector (2048-10485759, 初期値 2048):
+初期値 2048 を使います
+Last sector, +sectors or +size{K,M,G} (2048-10485759, 初期値 10485759):
+初期値 10485759 を使います
+Partition 1 of type Linux and of size 5 GiB is set
+
+コマンド (m でヘルプ): t
+Selected partition 1
+Hex code (type L to list all codes): 8e
+Changed type of partition 'Linux' to 'Linux LVM'
+
+コマンド (m でヘルプ): m
+コマンドの動作
+   a   toggle a bootable flag
+   b   edit bsd disklabel
+   c   toggle the dos compatibility flag
+   d   delete a partition
+   g   create a new empty GPT partition table
+   G   create an IRIX (SGI) partition table
+   l   list known partition types
+   m   print this menu
+   n   add a new partition
+   o   create a new empty DOS partition table
+   p   print the partition table
+   q   quit without saving changes
+   s   create a new empty Sun disklabel
+   t   change a partition's system id
+   u   change display/entry units
+   v   verify the partition table
+   w   write table to disk and exit
+   x   extra functionality (experts only)
+
+コマンド (m でヘルプ): w
+パーティションテーブルは変更されました！
+
+ioctl() を呼び出してパーティションテーブルを再読込みします。
+
+WARNING: Re-reading the partition table failed with error 22: 無効な引数です.
+The kernel still uses the old table. The new table will be used at
+the next reboot or after you run partprobe(8) or kpartx(8)
+ディスクを同期しています。
+```
+`# pvcreate /dev/loop3`
+```
+WARNING: dos signature detected on /dev/loop3 at offset 510. Wipe it? [y/n]: y
+  Wiping dos signature on /dev/loop3.
+  Physical volume "/dev/loop3" successfully created
+```
+```
+[root@swimmer objects]# ll -h /var/lib/cinder/cinder-volumes
+-rw-------. 1 root root 21G  7月 21 16:03 /var/lib/cinder/cinder-volumes
+[root@swimmer objects]# ll -h /var/lib/cinder/cinder-volumes
+-rw-------. 1 root root 121G  7月 21 17:06 /var/lib/cinder/cinder-volumes
+```
+### glance
+仮想インスタンスを起動させるイメージの管理
+***
+
 
