@@ -542,5 +542,182 @@ WARNING: dos signature detected on /dev/loop3 at offset 510. Wipe it? [y/n]: y
 ### glance
 仮想インスタンスを起動させるイメージの管理
 ***
+`# openstack image create centos --file /tmp/CentOS-7-x86_64-Minimal-1511.iso --disk-format iso  --container-format bare`
+```
++------------------+------------------------------------------------------+
+| Field            | Value                                                |
++------------------+------------------------------------------------------+
+| checksum         | 88c0437f0a14c6e2c94426df9d43cd67                     |
+| container_format | bare                                                 |
+| created_at       | 2016-07-19T09:46:52Z                                 |
+| disk_format      | iso                                                  |
+| file             | /v2/images/af48b06b-a17b-4e6c-9a93-6b892c4b5f24/file |
+| id               | af48b06b-a17b-4e6c-9a93-6b892c4b5f24                 |
+| min_disk         | 0                                                    |
+| min_ram          | 0                                                    |
+| name             | centos                                               |
+| owner            | bf8a4cddb9b046fda39ce3986774a3af                     |
+| protected        | False                                                |
+| schema           | /v2/schemas/image                                    |
+| size             | 632291328                                            |
+| status           | active                                               |
+| tags             |                                                      |
+| updated_at       | 2016-07-19T09:46:56Z                                 |
+| virtual_size     | None                                                 |
+| visibility       | private                                              |
++------------------+------------------------------------------------------+
+```
+` nova image-list`  
+```
++--------------------------------------+--------+--------+--------+
+| ID                                   | Name   | Status | Server |
++--------------------------------------+--------+--------+--------+
+| af48b06b-a17b-4e6c-9a93-6b892c4b5f24 | centos | ACTIVE |        |
+| 0ee8fdbb-df5e-4a51-8c9d-679a8a85d85c | cirros | ACTIVE |        |
++--------------------------------------+--------+--------+--------+
+```
+`# nova flavor-list`  
+```
++----+-----------+-----------+------+-----------+------+-------+-------------+-----------+
+| ID | Name      | Memory_MB | Disk | Ephemeral | Swap | VCPUs | RXTX_Factor | Is_Public |
++----+-----------+-----------+------+-----------+------+-------+-------------+-----------+
+| 1  | m1.tiny   | 512       | 1    | 0         |      | 1     | 1.0         | True      |
+| 2  | m1.small  | 2048      | 20   | 0         |      | 1     | 1.0         | True      |
+| 3  | m1.medium | 4096      | 40   | 0         |      | 2     | 1.0         | True      |
+| 4  | m1.large  | 8192      | 80   | 0         |      | 4     | 1.0         | True      |
+| 5  | m1.xlarge | 16384     | 160  | 0         |      | 8     | 1.0         | True      |
++----+-----------+-----------+------+-----------+------+-------+-------------+-----------+
+```
+#### 参考
+<http://docs.openstack.org/ja/image-guide/centos-image.html>
+
+### nova
+コンピュートサービスを構成する。
+***
+#### VMの作成
+`# nova boot --flavor m1.medium --image af48b06b-a17b-4e6c-9a93-6b892c4b5f24 --security_group default CentOS-t`
+```
++--------------------------------------+-----------------------------------------------+
+| Property                             | Value                                         |
++--------------------------------------+-----------------------------------------------+
+| OS-DCF:diskConfig                    | MANUAL                                        |
+| OS-EXT-AZ:availability_zone          |                                               |
+| OS-EXT-STS:power_state               | 0                                             |
+| OS-EXT-STS:task_state                | scheduling                                    |
+| OS-EXT-STS:vm_state                  | building                                      |
+| OS-SRV-USG:launched_at               | -                                             |
+| OS-SRV-USG:terminated_at             | -                                             |
+| accessIPv4                           |                                               |
+| accessIPv6                           |                                               |
+| adminPass                            | Tva23WbGjBKi                                  |
+| config_drive                         |                                               |
+| created                              | 2016-07-19T10:01:16Z                          |
+| flavor                               | m1.medium (3)                                 |
+| hostId                               |                                               |
+| id                                   | dd462a24-e893-452b-b7ac-014bb3d3132d          |
+| image                                | centos (af48b06b-a17b-4e6c-9a93-6b892c4b5f24) |
+| key_name                             | -                                             |
+| metadata                             | {}                                            |
+| name                                 | CentOS-test                                   |
+| os-extended-volumes:volumes_attached | []                                            |
+| progress                             | 0                                             |
+| security_groups                      | default                                       |
+| status                               | BUILD                                         |
+| tenant_id                            | bf8a4cddb9b046fda39ce3986774a3af              |
+| updated                              | 2016-07-19T10:01:16Z                          |
+| user_id                              | b25e61f198e448f5a22244e49320b43a              |
++--------------------------------------+-----------------------------------------------+
+```
+#### floating IPの設定
+外部と通信するために必要な外向けIPアドレス
+***
+* poolの確認  
+`# nova floating-ip-pool-list`
+```
++---------+
+| name    |
++---------+
+| net-ext |		★poolが表示されていること
+| public  |
++---------+
+```
+* floating ipの払い出し  
+`# nova floating-ip-create net-ext`
+```
++--------------------------------------+-------------+-----------+----------+---------+
+| Id                                   | IP          | Server Id | Fixed IP | Pool    |
++--------------------------------------+-------------+-----------+----------+---------+
+| 4130c3c1-eee8-4d8c-a138-a0e17095fe44 | 10.50.14.53 | -         | -        | net-ext |
++--------------------------------------+-------------+-----------+----------+---------+
+```
+* インスタンスの確認  
+`# nova list`
+```
++--------------------------------------+-------+--------+------------+-------------+-----------------------+
+| ID                                   | Name  | Status | Task State | Power State | Networks              |
++--------------------------------------+-------+--------+------------+-------------+-----------------------+
+| 60dd17f3-14ea-475c-8fb5-7b9eeaba2017 | a     | ACTIVE | -          | Running     | public=172.24.4.229   |
+| d35b7402-5453-48d0-b818-eb0fce08121b | a     | ACTIVE | -          | Running     | public=172.24.4.230   |
+| 5d1b158e-3352-4e8f-973e-1709f19cf6ab | test2 | ACTIVE | -          | Running     | net-int=192.168.10.11 |
++--------------------------------------+-------+--------+------------+-------------+-----------------------+
+```
+* floating ipの割り当て
+`# nova floating-ip-associate 5d1b158e-3352-4e8f-973e-1709f19cf6ab  10.50.14.53`  
+`# nova list`  
+```
++--------------------------------------+-------+--------+------------+-------------+------------------------------------+
+| ID                                   | Name  | Status | Task State | Power State | Networks                           |
++--------------------------------------+-------+--------+------------+-------------+------------------------------------+
+| 60dd17f3-14ea-475c-8fb5-7b9eeaba2017 | a     | ACTIVE | -          | Running     | public=172.24.4.229                |
+| d35b7402-5453-48d0-b818-eb0fce08121b | a     | ACTIVE | -          | Running     | public=172.24.4.230                |
+| 5d1b158e-3352-4e8f-973e-1709f19cf6ab | test2 | ACTIVE | -          | Running     | net-int=192.168.10.11, 10.50.14.53 |
++--------------------------------------+-------+--------+------------+-------------+------------------------------------+
+```
+### ロードバランサー
+* namespaceの確認
+`# ip netns`
+```
+qlbaas-c91a0611-c81e-4216-a0b2-2203efee2d1b
+qrouter-4f44407a-6679-401f-8b7a-30c89f8749cf
+qdhcp-94931237-7351-4690-9bfe-2a973739d631
+qdhcp-3e41c24b-d84a-46ed-9fa7-d5849ad7010c
+qdhcp-df3a58b5-74f7-4403-93ee-3699413fa976
+```
+
+* configの確認
+`# ip netns exec qlbaas-c91a0611-c81e-4216-a0b2-2203efee2d1b bash`  
+`# ps -ef | grep hap`  
+```
+nobody   21078     1  0 20:33 ?        00:00:00 haproxy -f /var/lib/neutron/lbaas/c91a0611-c81e-4216-a0b2-2203efee2d1b/conf -p /var/lib/neutron/lbaas/c91a0611-c81e-4216-a0b2-2203efee2d1b/pid -sf 20964
+root     23731 23587  0 20:47 pts/4    00:00:00 grep --color=auto hap
+```
+`# cat /var/lib/neutron/lbaas/c91a0611-c81e-4216-a0b2-2203efee2d1b/conf`
+```
+global
+        daemon
+        user nobody
+        group haproxy
+        log /dev/log local0
+        log /dev/log local1 notice
+        stats socket /var/lib/neutron/lbaas/c91a0611-c81e-4216-a0b2-2203efee2d1b/sock mode 0666 level user
+defaults
+        log global
+        retries 3
+        option redispatch
+        timeout connect 5000
+        timeout client 50000
+        timeout server 50000
+frontend 270f1a3d-dccb-495c-bbaa-bc275257a4d0
+        option tcplog
+        bind 192.168.10.100:80
+        mode tcp
+        default_backend c91a0611-c81e-4216-a0b2-2203efee2d1b
+backend c91a0611-c81e-4216-a0b2-2203efee2d1b
+        mode tcp
+        balance roundrobin
+        timeout check 1s
+        server 7ffa7d1e-a93d-4b53-99ec-21807e4a8961 192.168.10.22:80 weight 1 check inter 3s fall 10
+        server 7950123f-a42c-489e-9ebf-5d6d8c565f10 192.168.10.23:80 weight 1 check inter 3s fall 10[root@swimmer ~]#
+```
 
 
